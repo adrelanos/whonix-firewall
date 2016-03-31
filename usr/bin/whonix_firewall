@@ -67,20 +67,69 @@ echo "OK: Loading Whonix firewall..."
 ## USERS
 ###########################
 
+## {{ setting the following USER ID variables
+
+## USER_ID_clearnet
+## USER_ID_debian_tor
+## USER_ID_root
+## USER_ID_tunnel
+## USER_ID_user
+
+[ -n "$USER_CHECK_LIST" ] || USER_CHECK_LIST="debian-tor clearnet user root tunnel $USER_CHECK_LIST_EXTENSION"
+
+for user_check_list_item_original in $USER_CHECK_LIST ; do
+   user_check_list_item_without_dashes="$user_check_list_item_original"
+   user_check_list_item_without_dashes="$(echo "$user_check_list_item_without_dashes" | sed 's/-/_/g')"
+   id -u "$user_check_list_item_original" >/dev/null
+   eval USER_ID_${user_check_list_item_without_dashes}="$(id -u "$user_check_list_item_original")"
+   #echo "OK: USER_ID_${user_check_list_item_without_dashes}: $(eval echo \$USER_ID_${user_check_list_item_without_dashes})"
+done
+
+## }}
+
+USER_LIST="$(compgen -v | grep USER\_ID\_)"
+
 ## Get Tor username, distro specific!
-[ -n "$TOR_USER" ] || TOR_USER="$(id -u debian-tor)"
+[ -n "$TOR_USER" ] || TOR_USER="$USER_ID_debian_tor"
 
 ## Get user uids.
-[ -n "$CLEARNET_USER" ] || CLEARNET_USER="$(id -u clearnet)"
-[ -n "$USER_USER" ] || USER_USER="$(id -u user)"
-[ -n "$ROOT_USER" ] || ROOT_USER="$(id -u root)"
-[ -n "$TUNNEL_USER" ] || TUNNEL_USER="$(id -u tunnel)"
+[ -n "$CLEARNET_USER" ] || CLEARNET_USER="$USER_ID_clearnet"
+[ -n "$USER_USER" ] || USER_USER="$USER_ID_user"
+[ -n "$ROOT_USER" ] || ROOT_USER="$USER_ID_root"
+[ -n "$TUNNEL_USER" ] || TUNNEL_USER="$USER_ID_tunnel"
 
 echo "OK: TOR_USER: $TOR_USER"
 echo "OK: CLEARNET_USER: $CLEARNET_USER"
 echo "OK: USER_USER: $USER_USER"
 echo "OK: ROOT_USER: $ROOT_USER"
 echo "OK: ROOT_USER: $TUNNEL_USER"
+
+###########################
+## NO_NAT_USERS
+###########################
+
+## No NAT for clearnet user.
+NO_NAT_USERS+="$CLEARNET_USER"
+
+## No NAT for user user.
+## DISABLED BY DEFAULT. For testing/debugging only.
+if [ "$ALLOW_GATEWAY_USER_USER" = "1" ]; then
+   NO_NAT_USERS+="$USER_USER"
+fi
+
+## No NAT for root user.
+## DISABLED BY DEFAULT. For testing/debugging only.
+if [ "$ALLOW_GATEWAY_ROOT_USER" = "1" ]; then
+   NO_NAT_USERS+="$ROOT_USER"
+fi
+
+## No NAT for Tor itself,
+## unless VPN_FIREWALL mode is enabled.
+if [ "$VPN_FIREWALL" = "1" ]; then
+   true
+else
+   NO_NAT_USERS+="$TOR_USER"
+fi
 
 ###########################
 ## interfaces
@@ -484,27 +533,9 @@ if [ "$VPN_FIREWALL" = "1" ]; then
    $iptables_cmd -A OUTPUT -o "$VPN_INTERFACE" -j ACCEPT
 fi
 
-## No NAT for Tor itself,
-## unless VPN_FIREWALL mode is enabled.
-## ENABLED BY DEFAULT.
-if [ ! "$VPN_FIREWALL" = "1" ]; then
-   $iptables_cmd -t nat -A OUTPUT -m owner --uid-owner "$TOR_USER" -j RETURN
-fi
-
-## No NAT for clearnet user.
-$iptables_cmd -t nat -A OUTPUT -m owner --uid-owner "$CLEARNET_USER" -j RETURN
-
-## No NAT for user user.
-## DISABLED BY DEFAULT. For testing/debugging only.
-if [ "$ALLOW_GATEWAY_USER_USER" = "1" ]; then
-   $iptables_cmd -t nat -A OUTPUT -m owner --uid-owner "$USER_USER" -j RETURN
-fi
-
-## No NAT for root user.
-## DISABLED BY DEFAULT. For testing/debugging only.
-if [ "$ALLOW_GATEWAY_ROOT_USER" = "1" ]; then
-   $iptables_cmd -t nat -A OUTPUT -m owner --uid-owner "$ROOT_USER" -j RETURN
-fi
+for no_nat_user in $NO_NAT_USERS ; do
+   $iptables_cmd -t nat -A OUTPUT -m owner --uid-owner "$no_nat_user" -j RETURN
+done
 
 ## Redirect of Gateway DNS traffic to DNS_PORT_GATEWAY.
 ## DISABLED BY DEFAULT. default. Using SocksPort instead.
@@ -548,33 +579,8 @@ if [ "$VPN_FIREWALL" = "1" ]; then
    done
 fi
 
-## Tor is allowed to connect any outside target,
-## unless VPN_FIREWALL mode is enabled.
-## ENABLED BY DEFAULT.
-if [ ! "$VPN_FIREWALL" = "1" ]; then
-   $iptables_cmd -A OUTPUT -m owner --uid-owner "$TOR_USER" -j ACCEPT
-fi
-
-## Connections to VPN servers are allowed,
-## when VPN_FIREWALL mode is enabled.
-## DISABLED BY DEFAULT.
-if [ "$VPN_FIREWALL" = "1" ]; then
-   $iptables_cmd -A OUTPUT -m owner --uid-owner "$TUNNEL_USER" -j ACCEPT
-fi
-
-## clearnet user is allowed to connect any outside target.
-$iptables_cmd -A OUTPUT -m owner --uid-owner "$CLEARNET_USER" -j ACCEPT
-
-## user user is allowed to connect any outside target.
-## DISABLED BY DEFAULT. For testing/debugging only.
-if [ "$ALLOW_GATEWAY_USER_USER" = "1" ]; then
-   $iptables_cmd -A OUTPUT -m owner --uid-owner "$USER_USER" -j ACCEPT
-fi
-
-## root user is allowed to connect any outside target.
-## DISABLED BY DEFAULT. For testing/debugging only.
-if [ "$ALLOW_GATEWAY_ROOT_USER" = "1" ]; then
-   $iptables_cmd -A OUTPUT -m owner --uid-owner "$ROOT_USER" -j ACCEPT
+for no_nat_user in $NO_NAT_USERS ; do
+   $iptables_cmd -A OUTPUT -m owner --uid-owner "$no_nat_user" -j ACCEPT
 fi
 
 ## Log.
