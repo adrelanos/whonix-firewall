@@ -25,6 +25,18 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Install apt pre-reqs
+        run: |
+          sudo apt-get update
+          ## dctrl-tools provides grep-dctrl, which genmkfile's
+          ## deb-all-dep target uses to compute build dependencies
+          ## from each package's debian/control. Recent ubuntu-latest
+          ## runner images no longer ship it pre-installed, so the
+          ## first 'genmkfile deb-all-dep' fails with:
+          ##   ERROR: required command 'grep-dctrl' not found in PATH.
+          sudo apt-get install --yes --no-install-recommends -- \
+            dctrl-tools
+
       - name: Install genmkfile
         run: |
           git clone --depth=1 https://github.com/Kicksecure/genmkfile.git /tmp/genmkfile
@@ -54,6 +66,18 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
+      - name: Install apt pre-reqs
+        run: |
+          sudo apt-get update
+          ## dctrl-tools provides grep-dctrl, which genmkfile's
+          ## deb-all-dep target uses to compute build dependencies
+          ## from each package's debian/control. Recent ubuntu-latest
+          ## runner images no longer ship it pre-installed, so the
+          ## first 'genmkfile deb-all-dep' fails with:
+          ##   ERROR: required command 'grep-dctrl' not found in PATH.
+          sudo apt-get install --yes --no-install-recommends -- \
+            dctrl-tools
+
       - name: Install genmkfile
         run: |
           git clone --depth=1 https://github.com/Kicksecure/genmkfile.git /tmp/genmkfile
