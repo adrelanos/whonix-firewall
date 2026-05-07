@@ -1,3 +1,100 @@
+commit 2a1dceaf1aabe79c305e70dbcc270840a0c2953a
+Merge: 64ef2fc f658b78
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Wed May 6 13:45:30 2026 -0400
+
+    Merge remote-tracking branch 'org-ai-assisted/claude/read-agents-meta-file-uKeT9'
+
+commit f658b780c59015e9b73bbeb5d2d20033ee57a023
+Author: assisted-by-ai (Bot Account) <server@kicksecure.com>
+Date:   Wed May 6 08:17:09 2026 -0400
+
+    ci: SHA-pin actions/checkout + actions/upload-artifact
+
+commit 746d4d0f32334ffc01018fe1c612577def4927bf
+Author: assisted-by-ai (Bot Account) <server@kicksecure.com>
+Date:   Wed May 6 08:03:56 2026 -0400
+
+    ci: clone genmkfile/helper-scripts from same org, no Kicksecure fallback
+
+    Per maintainer feedback: drop the silent Kicksecure fallback - any
+    org choosing to host its own CI of whonix-firewall must explicitly
+    fork genmkfile + helper-scripts. A silent cross-org clone would be
+    a supply-chain footgun. The workflow now hard-errors on missing
+    repos with a clear "repository not found" message.
+
+commit 73ded79fecb044b9962f92f6722fd809f62cafe5
+Author: claude-code <claude-code@assisted-by-ai>
+Date:   Wed May 6 11:38:26 2026 +0000
+
+    test: classic PAT workflow-scope push capability
+
+commit 2c0230656654a1b193ba7459d6a2ac88bf99db99
+Author: assisted-by-ai (Bot Account) <server@kicksecure.com>
+Date:   Wed May 6 07:38:02 2026 -0400
+
+    ci: clone genmkfile/helper-scripts/msgcollector from same org with Kicksecure fallback
+
+    Replace hardcoded `git clone https://github.com/Kicksecure/<pkg>.git`
+    with same-org-first + Kicksecure-fallback so feature branches in the
+    same org can self-test against each other and don't have to wait for
+    a Kicksecure-master sync. Resolves to:
+
+      - same-org `<pkg>` (e.g. org-ai-assisted/<pkg>) when present
+      - Kicksecure/<pkg> upstream when same-org fork is missing
+
+commit 3488eaad38329b824e24781bf5cfff1762799826
+Author: assisted-by-ai (Bot Account) <server@kicksecure.com>
+Date:   Wed May 6 07:21:13 2026 -0400
+
+    Revert: dctrl-tools install in workflow; genmkfile bootstraps it now
+
+    The 'Install apt pre-reqs' step that apt-installed dctrl-tools is no
+    longer necessary - genmkfile now self-bootstraps it inside the
+    deb-all-dep target (org-ai-assisted/genmkfile PR adding
+    make_ensure_dctrl_tools). Per-workflow boilerplate is the wrong layer
+    for that bootstrap; do it once in genmkfile instead.
+
+commit e681dd50453b155cf155cbbc9f8ca067921e2a90
+Author: assisted-by-ai (Bot Account) <server@kicksecure.com>
+Date:   Wed May 6 06:09:15 2026 -0400
+
+    ci: install dctrl-tools before genmkfile so deb-all-dep finds grep-dctrl
+
+    Recent ubuntu-latest runner images stopped shipping dctrl-tools by
+    default. The first `genmkfile deb-all-dep` step in both jobs failed:
+
+      make-helper-one.bsh: ERROR: required command 'grep-dctrl' not found in PATH.
+
+    (confirmed in the Actions log of run 25407254976.)
+
+    Add an 'Install apt pre-reqs' step before each 'Install genmkfile'
+    step that apt-installs dctrl-tools (and any future deb-all-dep
+    runtime deps that surface).
+
+commit d19edc830dadead5e1318edea21a289b85330752
+Author: assisted-by-ai (Bot Account) <server@kicksecure.com>
+Date:   Tue May 5 19:08:45 2026 -0400
+
+    ci: cancel-in-progress on workflow re-run
+
+    Add (or enable) concurrency: cancel-in-progress: true on workflow yml
+    files that lacked it. Re-pushed runs of the same workflow on the same
+    ref (re-tagged release, force-push, etc.) now cancel the in-flight
+    run instead of stacking.
+
+commit fddeff12bc694e178d839f494b67258788363763
+Author: assisted-by-ai (Bot Account) <server@kicksecure.com>
+Date:   Tue May 5 17:51:56 2026 -0400
+
+    ci: add persist-credentials: false to all checkout steps
+
+commit 64ef2fc3cc5263549bc5435b2a54ad3e98693b61
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Fri Apr 24 11:20:59 2026 +0000
+
+    bumped changelog version
+
 commit 7df389a634ce02fa4abfb2e42686cc6693e47cd3
 Author: Patrick Schleizer <adrelanos@whonix.org>
 Date:   Fri Apr 24 07:20:40 2026 -0400
