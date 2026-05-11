@@ -1,3 +1,106 @@
+commit f6ef507614942badec56b9ad48d4bcbcfdbc618a
+Merge: 25a343b 7edc6c8
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Mon May 11 15:30:01 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/org-ai-assisted/master'
+
+commit 7edc6c8429457d856f8950831c632cc2704883a1
+Author: assisted-by-ai (Bot Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Sun May 10 20:19:01 2026 -0400
+
+    workflows: add concurrency blocks (#5)
+
+    3 cancellable.
+
+commit 5790dd41eef108b01243f5d2ca37a5436242f54c
+Author: assisted-by-ai (Bot Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Sun May 10 19:40:27 2026 -0400
+
+    firewall-tests.yml: add per-job timeout-minutes: 15 (#4)
+
+    Hang protection on both jobs.
+
+commit 16473fa89fc1cf41fb998a0fd42a62ecd9660df0
+Author: assisted-by-ai (Bot Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Sun May 10 19:21:23 2026 -0400
+
+    firewall-tests.yml: use developer-meta-files install-deps composite (#3)
+
+    4 inline blocks (2x genmkfile + 2x helper-scripts) -> 2 composite steps.
+
+commit 52e52daef29a11419fd080ae9c8ef2fdbe441c44
+Author: assisted-by-ai (Bot Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Sun May 10 17:59:40 2026 -0400
+
+    workflows: forward only required AI secret explicitly (#2)
+
+    claude-code.yml: explicit ANTHROPIC_API_KEY map. codex-review.yml: explicit OPENAI_API_KEY map. CI failures pre-merge are expected: claude-code-review action self-validates against master (resolves post-merge); dry-run tests blocked on genmkfile dctrl-tools fix landing first.
+
+commit 25a343b94e0d822139b8cd397639bd8f8f5863e8
+Merge: 0b665a1 f6c6fa0
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Sun May 10 15:16:42 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/org-ai-assisted/master'
+
+commit f6c6fa0afd5ff85f7dd2b181b0d6fdd8c8888c23
+Author: Claude <noreply@anthropic.com>
+Date:   Fri May 8 15:49:16 2026 +0000
+
+    claude-code: restore id-token: write
+
+    Reverts the earlier 'drop id-token' commit. Verified against a live
+    workflow log that the action DOES use OIDC federation:
+
+      Requesting OIDC token...
+      OIDC token successfully obtained
+      Exchanging OIDC token for app token...
+      Using GITHUB_TOKEN from OIDC
+
+    The action federates the runner's id-token to an Anthropic-controlled
+    GitHub App which mints a higher-privilege GITHUB_TOKEN used to post
+    review comments. Without id-token: write the next run would have
+    failed with 'Could not fetch an OIDC token'.
+
+commit ef7556f3225eef22bb6a19a124f9f2653b78e328
+Author: Claude <noreply@anthropic.com>
+Date:   Fri May 8 15:24:10 2026 +0000
+
+    scorecard: drop inline cron allocation table
+
+    The org-wide allocation table is single-source-of-truth in
+    developer-meta-files/.github/workflows/reusable-scorecard.yml. Each
+    consumer should carry only its own cron line with no commentary.
+
+commit 6c009536fac430f3bbbde8a5b53533cd8bc29fa3
+Author: Claude <noreply@anthropic.com>
+Date:   Fri May 8 15:21:18 2026 +0000
+
+    claude-code: drop id-token: write
+
+    The reusable workflow no longer needs id-token: write (the action
+    authenticates to api.anthropic.com via a static ANTHROPIC_API_KEY;
+    OIDC federation is unused). Drop the permission to honor
+    least-privilege - an OIDC token, if forged or leaked, can
+    authenticate to cloud-provider integrations.
+
+commit 31c9487d655c98a08048796c107711d48cf9868a
+Author: Claude <noreply@anthropic.com>
+Date:   Fri May 8 14:50:30 2026 +0000
+
+    ci: add scorecard, Claude Code Review, OpenAI Codex Review
+
+    Thin consumer wrappers around the reusables in
+    org-ai-assisted/developer-meta-files. Brings whonix-firewall
+    in line with the helper-scripts / kloak / security-misc baseline.
+
+commit 0b665a13b5083f126788bb781270e54ec26cc542
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Thu May 7 18:46:31 2026 +0000
+
+    bumped changelog version
+
 commit 2a1dceaf1aabe79c305e70dbcc270840a0c2953a
 Merge: 64ef2fc f658b78
 Author: Patrick Schleizer <adrelanos@whonix.org>
