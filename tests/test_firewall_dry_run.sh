@@ -22,6 +22,9 @@ set -o errexit
 set -o nounset
 set -o errtrace
 set -o pipefail
+shopt -s inherit_errexit
+shopt -s shift_verbose
+export LC_ALL=C
 
 if ! [ "${CI:-}" = "true" ]; then
   printf '%s\n' "$0: These tests are only supposed to run on CI." >&2
@@ -251,7 +254,8 @@ test_gateway_default() {
   assert_contains "gateway-default" "${f}" "tcp dport 9150 counter accept"
   ## ICMPv6 ND.
   assert_contains "gateway-default" "${f}" "nd-neighbor-solicit"
-  assert_contains "gateway-default" "${f}" "fib saddr . iif oif missing counter drop"
+  assert_contains "gateway-default" "${f}" "add chain inet filter prerouting { type filter hook prerouting priority raw; }"
+  assert_contains "gateway-default" "${f}" "add rule inet filter prerouting .*fib saddr . iif oif missing counter drop"
 }
 
 test_gateway_vpn() {
@@ -265,6 +269,21 @@ VPN_FIREWALL=1"
   f="${output_dir}/gateway-vpn.nft"
   assert_file_not_empty "gateway-vpn" "${f}"
   assert_contains "gateway-vpn" "${f}" "oifname tun0 counter accept"
+}
+
+test_gateway_int_tif_urpf() {
+  cleanup_markers
+  set_gateway_marker
+  write_config 'firewall_mode=full
+INT_IF="eth1"
+INT_TIF="tun0"'
+
+  run_test "gateway-int-tif" "whonix-gateway-firewall --dry-run"
+  local f
+  f="${output_dir}/gateway-int-tif.nft"
+  assert_file_not_empty "gateway-int-tif" "${f}"
+  assert_contains "gateway-int-tif" "${f}" "iifname eth1 fib saddr . iif oif missing counter drop"
+  assert_contains "gateway-int-tif" "${f}" "iifname tun0 fib saddr . iif oif missing counter drop"
 }
 
 test_gateway_timesync() {
@@ -284,7 +303,8 @@ test_gateway_timesync() {
   assert_not_contains "gateway-timesync" "${f}" "redirect to :9040"
   ## uRPF anti-spoofing is UNCONDITIONAL: present even in timesync-fail-closed,
   ## not gated behind the (absent here) redirect rules.
-  assert_contains "gateway-timesync" "${f}" "fib saddr . iif oif missing counter drop"
+  assert_contains "gateway-timesync" "${f}" "add chain inet filter prerouting { type filter hook prerouting priority raw; }"
+  assert_contains "gateway-timesync" "${f}" "add rule inet filter prerouting .*fib saddr . iif oif missing counter drop"
 }
 
 test_gateway_timesync_sdwdate_success() {
@@ -401,7 +421,8 @@ test_host_default() {
   assert_contains "host-default" "${f}" "oifname lo counter accept"
   assert_contains "host-default" "${f}" "nd-neighbor-solicit"
   assert_contains "host-default" "${f}" "counter reject"
-  assert_contains "host-default" "${f}" "fib saddr . iif oif missing counter drop"
+  assert_contains "host-default" "${f}" "add chain inet filter prerouting { type filter hook prerouting priority raw; }"
+  assert_contains "host-default" "${f}" "add rule inet filter prerouting .*fib saddr . iif oif missing counter drop"
 }
 
 test_host_vpn() {
@@ -462,6 +483,7 @@ create_users
 
 test_gateway_default
 test_gateway_vpn
+test_gateway_int_tif_urpf
 test_gateway_timesync
 test_gateway_timesync_sdwdate_success
 test_gateway_socksified_disabled

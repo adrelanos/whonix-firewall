@@ -368,9 +368,13 @@ nft_prerouting_antispoof_gateway() {
   ## server over clearnet. Note that such an attack is not known to work even
   ## when this configuration is missing.
   ${nftables_cmd} "add chain inet filter prerouting { type filter hook prerouting priority raw; }"
-  local int_if_item
-  for int_if_item in ${INT_IF}; do
-    ${nftables_cmd} add rule inet filter prerouting iifname "${int_if_item}" fib saddr . iif oif missing counter drop
+  local antispoof_if_item antispoof_seen=""
+  for antispoof_if_item in ${INT_IF} ${INT_TIF}; do
+    if [[ " ${antispoof_seen} " == *" ${antispoof_if_item} "* ]]; then
+      continue
+    fi
+    antispoof_seen="${antispoof_seen} ${antispoof_if_item}"
+    ${nftables_cmd} add rule inet filter prerouting iifname "${antispoof_if_item}" fib saddr . iif oif missing counter drop
   done
 }
 
