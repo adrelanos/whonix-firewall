@@ -1,9 +1,108 @@
+commit 598c7e2ad57c19755e3aa3201ad7f573b8559c5c
+Merge: 475d6b6 83f52d0
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Mon Sep 28 02:52:47 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/ArrayBolt3/arraybolt3/trixie'
+
+commit 83f52d005f0934e5a610cd7c0710feee9e8a905a
+Merge: d3ad0ce 6625e1b
+Author: Aaron Rainbolt <arraybolt3@gmail.com>
+Date:   Fri Sep 25 16:21:43 2026 -0400
+
+    Merge branch 'ai' into arraybolt3/trixie
+
+commit 6625e1b233aff6e816c8cbb6c6bb01541e1bed4b
+Merge: 1a725e1 475d6b6
+Author: assisted-by-ai <assisted-by-ai@users.noreply.github.com>
+Date:   Thu Sep 24 22:58:17 2026 -0400
+
+    Merge master into ai (remaster)
+
+commit 1a725e1ad47b630d086562bc74453f39e771a9e0
+Author: claude (dev626 2694adad-9457-4275-9dcf-e16e11e65327) <noreply@anthropic.com>
+Date:   Wed Sep 23 18:07:09 2026 -0400
+
+    Add gateway-int-tif golden ruleset (INT_IF=eth1, INT_TIF=tun0)
+
+    Committed reference output of `whonix-gateway-firewall --dry-run` with a separate
+    tunnel interface (the test_gateway_int_tif_urpf config), so a consumer can load the
+    INT_TIF ruleset. Enables the dist-ai leak suite's behavioral INT_TIF forged-source
+    test (uRPF must guard tun0, not only eth1) to run instead of skip.
+
+    Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+commit d3ad0ce8336fa9558f04fbb2fbdd1f8eb6f36c95
+Author: Aaron Rainbolt <arraybolt3@gmail.com>
+Date:   Wed Sep 23 15:36:43 2026 -0400
+
+    Polish, remove unnecessary shellcheck ignore and misleading comment next to it
+
+commit 6010c219a82d0d3ce718d8f7bd54dd483b1f3bbf
+Merge: 475d6b6 ce029ee
+Author: Aaron Rainbolt <arraybolt3@gmail.com>
+Date:   Wed Sep 23 15:14:41 2026 -0400
+
+    Merge branch 'ai' into arraybolt3/trixie
+
+commit ce029eeb203ddfa122437690d1cc2276443253ef
+Author: claude (dev651 634d00b5-7189-458b-ab09-5aa46e29e604) <noreply@anthropic.com>
+Date:   Wed Sep 23 12:19:55 2026 -0400
+
+    tests: assert uRPF drop rule placement, not mere presence
+
+    - bare "fib saddr" check passed even if the drop rule moved to the inet
+      nat prerouting chain; pin the raw-priority filter prerouting chain and
+      the rule within it
+    - applied to all three cases (gateway-default, gateway-timesync,
+      host-default); gateway-int-tif already pins iifname
+
+    Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+commit 475d6b627825adc900391d555e5b7a14de10efe6
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Wed Sep 23 15:45:31 2026 +0000
+
+    bumped changelog version
+
 commit 687ec39dace3563d5e2d3925b62cfd5d97ddcc05
 Merge: 4c4a96f ccf9c6e
 Author: Patrick Schleizer <adrelanos@whonix.org>
 Date:   Wed Sep 23 03:52:05 2026 -0400
 
     Merge remote-tracking branch 'refs/remotes/ArrayBolt3/arraybolt3/trixie'
+
+commit ca38f7b4756d4f53d4fb38d108118395584a5666
+Author: claude (dev626 2694adad-9457-4275-9dcf-e16e11e65327) <noreply@anthropic.com>
+Date:   Wed Sep 23 03:22:21 2026 -0400
+
+    Style: shellcheck-clean the uRPF change, complete test strict-mode
+
+    - restructure the INT_IF+INT_TIF dedup to the for-loop + case idiom: avoids the
+      SC2086 an unquoted printf argument introduced, drops the external sort, and
+      keeps the default INT_IF==INT_TIF ruleset byte-identical
+    - file-wide shellcheck disable=SC2154 (config vars are sourced from
+      /etc/whonix_firewall.d at runtime; set -o nounset is the real unset guard)
+    - complete tests/test_firewall_dry_run.sh strict-mode header to the 7 directives
+
+    Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+commit bfb8e1ecd5149ae6d59d729cf3d20b4a282e6fd9
+Author: claude (dev626 2694adad-9457-4275-9dcf-e16e11e65327) <noreply@anthropic.com>
+Date:   Wed Sep 23 03:14:13 2026 -0400
+
+    uRPF anti-spoof: cover INT_TIF, not only INT_IF
+
+    - DnsPort / Control Port Filter Proxy / Socks / 9152-9229 accepts are installed
+      on INT_TIF; when a VPN tunnel between Workstation and Gateway makes INT_TIF
+      differ from INT_IF, a forged source on INT_TIF was accepted with no reverse-
+      path check and the un-NAT'd reply egressed the external interface (clearnet)
+    - loop the deduplicated union of INT_IF + INT_TIF, so the default
+      INT_IF==INT_TIF keeps a single rule (ruleset byte-identical) and the tunnel
+      interface is guarded when they differ
+    - dry-run regression test asserts the drop on both interfaces (fails pre-fix)
+
+    Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
 
 commit ccf9c6e0949bcd0942ce78c46cfeef6de7ce4bfe
 Author: Aaron Rainbolt <arraybolt3@gmail.com>
